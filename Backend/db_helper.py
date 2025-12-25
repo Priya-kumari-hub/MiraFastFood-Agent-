@@ -1,13 +1,16 @@
 
 import mysql.connector
+import os
+
 global cnx
 
 cnx = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="root",
-    database="pandeyji_eatery"
+    host=os.getenv("DB_HOST"),
+    user=os.getenv("DB_USER"),
+    password=os.getenv("DB_PASSWORD"),
+    database=os.getenv("DB_NAME")
 )
+
 
 # Function to call the MySQL stored procedure and insert an order item
 def insert_order_item(food_item, quantity, order_id):
@@ -117,4 +120,5 @@ if __name__ == "__main__":
     # insert_order_item('Samosa', 3, 99)
     # insert_order_item('Pav Bhaji', 1, 99)
     # insert_order_tracking(99, "in progress")
+
     print(get_next_order_id())
