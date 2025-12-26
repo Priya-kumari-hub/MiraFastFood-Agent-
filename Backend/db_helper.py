@@ -1,124 +1,95 @@
-
-import mysql.connector
+import psycopg2
 import os
 
-global cnx
 
-cnx = mysql.connector.connect(
-    host=os.getenv("DB_HOST"),
-    user=os.getenv("DB_USER"),
-    password=os.getenv("DB_PASSWORD"),
-    database=os.getenv("DB_NAME")
-)
+def get_db_connection():
+    return psycopg2.connect(os.getenv("DATABASE_URL"))
 
 
-# Function to call the MySQL stored procedure and insert an order item
+# Insert items of an order
 def insert_order_item(food_item, quantity, order_id):
     try:
-        cursor = cnx.cursor()
+        conn = get_db_connection()
+        cursor = conn.cursor()
 
-        # Calling the stored procedure
-        cursor.callproc('insert_order_item', (food_item, quantity, order_id))
+        query = """
+        INSERT INTO order_items (order_id, food_name, quantity)
+        VALUES (%s, %s, %s)
+        """
+        cursor.execute(query, (order_id, food_item, quantity))
 
-        # Committing the changes
-        cnx.commit()
-
-        # Closing the cursor
+        conn.commit()
         cursor.close()
-
-        print("Order item inserted successfully!")
+        conn.close()
 
         return 1
-
-    except mysql.connector.Error as err:
-        print(f"Error inserting order item: {err}")
-
-        # Rollback changes if necessary
-        cnx.rollback()
-
-        return -1
 
     except Exception as e:
-        print(f"An error occurred: {e}")
-        # Rollback changes if necessary
-        cnx.rollback()
-
+        print("Error inserting order item:", e)
         return -1
 
-# Function to insert a record into the order_tracking table
+
+# Insert order tracking status
 def insert_order_tracking(order_id, status):
-    cursor = cnx.cursor()
+    conn = get_db_connection()
+    cursor = conn.cursor()
 
-    # Inserting the record into the order_tracking table
-    insert_query = "INSERT INTO order_tracking (order_id, status) VALUES (%s, %s)"
-    cursor.execute(insert_query, (order_id, status))
+    query = """
+    INSERT INTO orders (id, status)
+    VALUES (%s, %s)
+    """
+    cursor.execute(query, (order_id, status))
 
-    # Committing the changes
-    cnx.commit()
-
-    # Closing the cursor
+    conn.commit()
     cursor.close()
+    conn.close()
 
+
+# Get total order price
 def get_total_order_price(order_id):
-    cursor = cnx.cursor()
+    conn = get_db_connection()
+    cursor = conn.cursor()
 
-    # Executing the SQL query to get the total order price
-    query = f"SELECT get_total_order_price({order_id})"
-    cursor.execute(query)
-
-    # Fetching the result
+    query = """
+    SELECT SUM(f.price * oi.quantity)
+    FROM order_items oi
+    JOIN food_items f ON oi.food_name = f.name
+    WHERE oi.order_id = %s
+    """
+    cursor.execute(query, (order_id,))
     result = cursor.fetchone()[0]
 
-    # Closing the cursor
     cursor.close()
+    conn.close()
 
-    return result
+    return result if result else 0
 
-# Function to get the next available order_id
+
+# Get next order ID
 def get_next_order_id():
-    cursor = cnx.cursor()
+    conn = get_db_connection()
+    cursor = conn.cursor()
 
-    # Executing the SQL query to get the next available order_id
-    query = "SELECT MAX(order_id) FROM orders"
+    query = "SELECT COALESCE(MAX(id), 0) + 1 FROM orders"
     cursor.execute(query)
+    next_id = cursor.fetchone()[0]
 
-    # Fetching the result
-    result = cursor.fetchone()[0]
-
-    # Closing the cursor
     cursor.close()
+    conn.close()
 
-    # Returning the next available order_id
-    if result is None:
-        return 1
-    else:
-        return result + 1
+    return next_id
 
-# Function to fetch the order status from the order_tracking table
+
+# Get order status
 def get_order_status(order_id):
-    cursor = cnx.cursor()
+    conn = get_db_connection()
+    cursor = conn.cursor()
 
-    # Executing the SQL query to fetch the order status
-    query = f"SELECT status FROM order_tracking WHERE order_id = {order_id}"
-    cursor.execute(query)
-
-    # Fetching the result
+    query = "SELECT status FROM orders WHERE id = %s"
+    cursor.execute(query, (order_id,))
     result = cursor.fetchone()
 
-    # Closing the cursor
     cursor.close()
+    conn.close()
 
-    # Returning the order status
-    if result:
-        return result[0]
-    else:
-        return None
-
-
-if __name__ == "__main__":
-    # print(get_total_order_price(56))
-    # insert_order_item('Samosa', 3, 99)
-    # insert_order_item('Pav Bhaji', 1, 99)
-    # insert_order_tracking(99, "in progress")
-
-    print(get_next_order_id())
+    return result[0] if result else None
