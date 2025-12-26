@@ -4,8 +4,29 @@ from fastapi import Request
 from fastapi.responses import JSONResponse
 import db_helper
 import generic_helper
+from dialogflow_helper import detect_intent_text
+import uuid
+from fastapi.middleware.cors import CORSMiddleware
+
+
 
 app = FastAPI()
+
+# CORS (required for GitHub Pages)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.post("/chat")
+async def chat(data: dict):
+    text = data["text"]
+    session_id = str(uuid.uuid4())
+
+    reply = detect_intent_text(text, session_id)
+    return {"reply": reply}
 
 inprogress_orders = {}
 
@@ -158,4 +179,5 @@ def track_order(parameters: dict, session_id: str):
 
     return JSONResponse(content={
         "fulfillmentText": fulfillment_text
+
     })
