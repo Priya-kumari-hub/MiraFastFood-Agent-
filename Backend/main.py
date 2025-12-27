@@ -20,13 +20,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-SESSION_ID = "web-user-session"
-
 @app.post("/chat")
 async def chat(data: dict):
     text = data["text"]
-    reply = detect_intent_text(text, SESSION_ID)
+
+    # IMPORTANT: let Dialogflow manage session
+    session_id = "web-session"
+
+    reply = detect_intent_text(text, session_id)
     return {"reply": reply}
+
 
 inprogress_orders = {}
 
@@ -181,5 +184,6 @@ def track_order(parameters: dict, session_id: str):
         "fulfillmentText": fulfillment_text
 
     })
+
 
 
