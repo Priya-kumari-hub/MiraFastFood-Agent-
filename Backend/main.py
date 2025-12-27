@@ -20,12 +20,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+SESSION_ID = "web-user-session"
+
 @app.post("/chat")
 async def chat(data: dict):
     text = data["text"]
-    session_id = str(uuid.uuid4())
-
-    reply = detect_intent_text(text, session_id)
+    reply = detect_intent_text(text, SESSION_ID)
     return {"reply": reply}
 
 inprogress_orders = {}
@@ -181,4 +181,5 @@ def track_order(parameters: dict, session_id: str):
         "fulfillmentText": fulfillment_text
 
     })
+
 
