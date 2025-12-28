@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 import db_helper
 import generic_helper
-from dialogflow_helper import detect_intent_and_params
+from dialogflow_helper import detect_intent_text
 
 app = FastAPI()
 
@@ -195,4 +195,5 @@ def track_order(parameters: dict, session_id: str):
     return JSONResponse(content={
         "fulfillmentText": f"Order {order_id} is currently {status}."
     })
+
 
