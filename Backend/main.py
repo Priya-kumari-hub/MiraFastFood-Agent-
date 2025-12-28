@@ -26,29 +26,16 @@ WEB_SESSION_ID = "web-session"
 
 @app.post("/chat")
 async def chat(data: dict):
-    text = data["text"]
+    text = data.get("text")
 
-    intent, parameters = detect_intent_and_params(text, WEB_SESSION_ID)
+    if not text:
+        return {"reply": "Please type something."}
 
-    intent_handler_dict = {
-        "add.order": add_to_order,
-        "remove.order": remove_from_order,
-        "complete.order": complete_order,
-        "order.track": track_order
-    }
+    # Let Dialogflow do EVERYTHING
+    reply = detect_intent_text(text, WEB_SESSION_ID)
 
-    handler = intent_handler_dict.get(intent)
-    
-    if not handler:
-        return {"reply": "Sorry, I didn’t understand that."}
+    return {"reply": reply}
 
-    response = handler(parameters, WEB_SESSION_ID)
-
-    # ✅ extract only fulfillment text
-    fulfillment_text = response.body.decode()
-    fulfillment_text = eval(fulfillment_text)["fulfillmentText"]
-
-    return {"reply": fulfillment_text}
 
 
 
@@ -214,6 +201,7 @@ def track_order(parameters: dict, session_id: str):
         "fulfillmentText": fulfillment_text
 
     })
+
 
 
 
