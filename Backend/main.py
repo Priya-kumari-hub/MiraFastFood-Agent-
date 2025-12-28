@@ -20,7 +20,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-from dialogflow_helper import detect_intent_and_params
 
 WEB_SESSION_ID = "web-session"
 
@@ -32,7 +31,7 @@ async def chat(data: dict):
         return {"reply": "Please type something."}
 
     # Let Dialogflow do EVERYTHING
-    reply = detect_intent_text(text, WEB_SESSION_ID)
+    reply =detect_intent_and_params(text, WEB_SESSION_ID)
 
     return {"reply": reply}
 
@@ -214,6 +213,7 @@ def track_order(parameters: dict, session_id: str):
     return JSONResponse(content={
         "fulfillmentText": fulfillment_text
     })
+
 
 
 
