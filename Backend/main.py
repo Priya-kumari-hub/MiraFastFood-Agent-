@@ -126,7 +126,12 @@ def add_to_order(parameters: dict, session_id: str):
             "fulfillmentText": "I couldn't recognize the food item. Please try again."
         })
 
-    new_items = dict(zip(food_items, quantities))
+    new_food_dict = {
+    str(item): int(qty)
+    for item, qty in zip(food_items, quantities)
+    if item and qty
+}
+
 
     if session_id not in inprogress_orders:
         inprogress_orders[session_id] = {}
@@ -226,3 +231,4 @@ def track_order(parameters: dict, session_id: str):
     return JSONResponse(content={
         "fulfillmentText": f"Order {order_id} is currently {status}."
     })
+
