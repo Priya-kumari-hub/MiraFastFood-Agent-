@@ -20,15 +20,35 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+from dialogflow_helper import detect_intent_and_params
+
+WEB_SESSION_ID = "web-session"
+
 @app.post("/chat")
 async def chat(data: dict):
     text = data["text"]
 
-    # IMPORTANT: let Dialogflow manage session
-    session_id = "web-session"
+    intent, parameters = detect_intent_and_params(text, WEB_SESSION_ID)
 
-    reply = detect_intent_text(text, session_id)
-    return {"reply": reply}
+    intent_handler_dict = {
+        "add.order": add_to_order,
+        "remove.order": remove_from_order,
+        "complete.order": complete_order,
+        "order.track": track_order
+    }
+
+    handler = intent_handler_dict.get(intent)
+
+    if not handler:
+        return {"reply": "Sorry, I didn’t understand that."}
+
+    response = handler(parameters, WEB_SESSION_ID)
+
+    # Extract fulfillment text
+    reply_text = response.body.decode("utf-8")
+
+    return {"reply": reply_text}
+
 
 
 inprogress_orders = {}
@@ -184,6 +204,7 @@ def track_order(parameters: dict, session_id: str):
         "fulfillmentText": fulfillment_text
 
     })
+
 
 
 
