@@ -125,42 +125,41 @@ def complete_order(parameters: dict, session_id: str):
     })
 
 def add_to_order(parameters: dict, session_id: str):
-    # ✅ handle both possible parameter names
     food_items = parameters.get("food_items") or parameters.get("food-item")
     quantities = parameters.get("number")
 
-    # ✅ normalize None → empty list
-    if food_items is None:
-        food_items = []
-    if quantities is None:
-        quantities = []
+    if not food_items:
+        return JSONResponse(content={
+            "fulfillmentText": "I couldn't recognize the food item. Please try again."
+        })
 
-    # ✅ force list
+    if quantities is None or len(quantities) == 0:
+        quantities = [1] * len(food_items)
+
     if isinstance(food_items, str):
         food_items = [food_items]
+
     if isinstance(quantities, int):
         quantities = [quantities]
 
-    # ✅ default quantity = 1
-    if len(quantities) == 0 and len(food_items) > 0:
-        quantities = [1] * len(food_items)
-
     if len(food_items) != len(quantities):
-        fulfillment_text = "Sorry, please tell item names clearly."
+        return JSONResponse(content={
+            "fulfillmentText": "Please specify quantities clearly."
+        })
+
+    new_food_dict = dict(zip(food_items, quantities))
+
+    if session_id in inprogress_orders:
+        inprogress_orders[session_id].update(new_food_dict)
     else:
-        new_food_dict = dict(zip(food_items, quantities))
+        inprogress_orders[session_id] = new_food_dict
 
-        if session_id in inprogress_orders:
-            inprogress_orders[session_id].update(new_food_dict)
-        else:
-            inprogress_orders[session_id] = new_food_dict
-
-        order_str = generic_helper.get_str_from_food_dict(inprogress_orders[session_id])
-        fulfillment_text = f"So far you have: {order_str}. Do you need anything else?"
+    order_str = generic_helper.get_str_from_food_dict(inprogress_orders[session_id])
 
     return JSONResponse(content={
-        "fulfillmentText": fulfillment_text
+        "fulfillmentText": f"So far you have: {order_str}. Do you need anything else?"
     })
+
 
 
 
@@ -217,6 +216,7 @@ def track_order(parameters: dict, session_id: str):
         "fulfillmentText": fulfillment_text
 
     })
+
 
 
 
