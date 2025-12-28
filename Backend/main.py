@@ -25,7 +25,6 @@ inprogress_orders = {}
 # =========================================================
 @app.post("/chat")
 async def chat(data: dict):
-    # Safety check
     if "text" not in data or not data["text"]:
         return {"reply": "Please send a message."}
 
@@ -45,16 +44,11 @@ async def chat(data: dict):
     if not handler:
         return {"reply": "Sorry, I didn’t understand that."}
 
-    # Call handler (returns JSONResponse)
-    response = handler(parameters, WEB_SESSION_ID)
+    response: JSONResponse = handler(parameters, WEB_SESSION_ID)
 
-    # Extract fulfillmentText safely
-    body = response.body.decode("utf-8")
-
-    if "fulfillmentText" in body:
-        reply = body.split("fulfillmentText\":\"")[1].split("\"")[0]
-    else:
-        reply = "Something went wrong."
+    # ✅ SAFE JSON extraction
+    reply = response.body.decode()
+    reply = reply.replace('{"fulfillmentText":"', "").replace('"}', "")
 
     return {"reply": reply}
 
@@ -111,13 +105,12 @@ def add_to_order(parameters: dict, session_id: str):
     food_items = parameters.get("food_items") or []
     quantities = parameters.get("number") or []
 
-    # Normalize to lists
     if not isinstance(food_items, list):
         food_items = [food_items]
     if not isinstance(quantities, list):
         quantities = [quantities]
 
-    # Remove None values
+    # remove None
     food_items = [f for f in food_items if f]
     quantities = [int(q) for q in quantities if q]
 
@@ -126,12 +119,11 @@ def add_to_order(parameters: dict, session_id: str):
             "fulfillmentText": "I couldn't recognize the food item. Please try again."
         })
 
-    new_food_dict = {
-    str(item): int(qty)
-    for item, qty in zip(food_items, quantities)
-    if item and qty
-}
-
+    # ✅ CORRECT variable
+    new_items = {
+        str(item): int(qty)
+        for item, qty in zip(food_items, quantities)
+    }
 
     if session_id not in inprogress_orders:
         inprogress_orders[session_id] = {}
@@ -154,7 +146,6 @@ def remove_from_order(parameters: dict, session_id: str):
         })
 
     food_items = parameters.get("food_items") or []
-
     if not isinstance(food_items, list):
         food_items = [food_items]
 
@@ -162,8 +153,7 @@ def remove_from_order(parameters: dict, session_id: str):
 
     current_order = inprogress_orders[session_id]
 
-    removed = []
-    not_found = []
+    removed, not_found = [], []
 
     for item in food_items:
         if item in current_order:
@@ -172,22 +162,18 @@ def remove_from_order(parameters: dict, session_id: str):
         else:
             not_found.append(item)
 
-    response = ""
-
+    msg = ""
     if removed:
-        response += f"Removed {', '.join(removed)}. "
-
+        msg += f"Removed {', '.join(removed)}. "
     if not_found:
-        response += f"{', '.join(not_found)} were not in your order. "
+        msg += f"{', '.join(not_found)} were not in your order. "
 
     if not current_order:
-        response += "Your order is empty."
+        msg += "Your order is empty."
     else:
-        response += "Remaining: " + generic_helper.get_str_from_food_dict(current_order)
+        msg += "Remaining: " + generic_helper.get_str_from_food_dict(current_order)
 
-    return JSONResponse(content={
-        "fulfillmentText": response.strip()
-    })
+    return JSONResponse(content={"fulfillmentText": msg.strip()})
 
 
 def complete_order(parameters: dict, session_id: str):
@@ -220,8 +206,7 @@ def track_order(parameters: dict, session_id: str):
             "fulfillmentText": "Please provide a valid order ID."
         })
 
-    order_id = int(order_id)
-    status = db_helper.get_order_status(order_id)
+    status = db_helper.get_order_status(int(order_id))
 
     if not status:
         return JSONResponse(content={
@@ -231,4 +216,3 @@ def track_order(parameters: dict, session_id: str):
     return JSONResponse(content={
         "fulfillmentText": f"Order {order_id} is currently {status}."
     })
-
