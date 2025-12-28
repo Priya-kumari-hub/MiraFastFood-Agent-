@@ -4,7 +4,7 @@ from fastapi import Request
 from fastapi.responses import JSONResponse
 import db_helper
 import generic_helper
-from dialogflow_helper import detect_intent_text
+from dialogflow_helper import detect_intent_and_params
 import uuid
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -204,6 +204,7 @@ def track_order(parameters: dict, session_id: str):
         "fulfillmentText": fulfillment_text
 
     })
+
 
 
 
