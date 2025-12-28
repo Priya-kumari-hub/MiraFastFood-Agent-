@@ -27,20 +27,7 @@ from dialogflow_helper import detect_intent_text
 
 WEB_SESSION_ID = "web-session"
 
-@app.post("/chat")
-async def chat(data: dict):
-    if "text" not in data or not data["text"]:
-        return {"reply": "Please send a message."}
 
-    text = data["text"]
-
-    # 🔥 Let Dialogflow handle EVERYTHING (including webhook)
-    reply = detect_intent_text(text, WEB_SESSION_ID)
-
-    if not reply:
-        reply = "Sorry, something went wrong. Please try again."
-
-    return {"reply": reply}
 
 
 
@@ -207,6 +194,7 @@ def track_order(parameters: dict, session_id: str):
     return JSONResponse(content={
         "fulfillmentText": f"Order {order_id} is currently {status}."
     })
+
 
 
 
