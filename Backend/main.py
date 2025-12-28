@@ -44,11 +44,9 @@ async def chat(data: dict):
 
     response = handler(parameters, WEB_SESSION_ID)
 
-    # Extract fulfillment text
-    reply_text = response.body.decode("utf-8")
-
-    return {"reply": reply_text}
-
+    return {
+        "reply": response.content.decode("utf-8")
+    }
 
 
 inprogress_orders = {}
@@ -204,6 +202,7 @@ def track_order(parameters: dict, session_id: str):
         "fulfillmentText": fulfillment_text
 
     })
+
 
 
 
