@@ -24,6 +24,8 @@ from dialogflow_helper import detect_intent_and_params
 
 WEB_SESSION_ID = "web-session"
 
+WEB_SESSION_ID = "web-session"
+
 @app.post("/chat")
 async def chat(data: dict):
     text = data["text"]
@@ -38,15 +40,18 @@ async def chat(data: dict):
     }
 
     handler = intent_handler_dict.get(intent)
-
+    
     if not handler:
         return {"reply": "Sorry, I didn’t understand that."}
 
     response = handler(parameters, WEB_SESSION_ID)
 
-    return {
-        "reply": response.content.decode("utf-8")
-    }
+    # ✅ extract only fulfillment text
+    fulfillment_text = response.body.decode()
+    fulfillment_text = eval(fulfillment_text)["fulfillmentText"]
+
+    return {"reply": fulfillment_text}
+
 
 
 inprogress_orders = {}
@@ -202,6 +207,7 @@ def track_order(parameters: dict, session_id: str):
         "fulfillmentText": fulfillment_text
 
     })
+
 
 
 
