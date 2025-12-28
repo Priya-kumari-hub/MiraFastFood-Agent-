@@ -190,17 +190,31 @@ def remove_from_order(parameters: dict, session_id: str):
     })
 
 def track_order(parameters: dict, session_id: str):
-    order_id = int(parameters['order_id'])
+    order_id = parameters.get("order_id")
+
+    if not order_id:
+        return JSONResponse(content={
+            "fulfillmentText": "Please tell me your order id to track your order."
+        })
+
+    try:
+        order_id = int(order_id)
+    except ValueError:
+        return JSONResponse(content={
+            "fulfillmentText": "Order id should be a number. Please try again."
+        })
+
     order_status = db_helper.get_order_status(order_id)
+
     if order_status:
-        fulfillment_text = f"The order status for order id: {order_id} is: {order_status}"
+        fulfillment_text = f"The order status for order id {order_id} is: {order_status}"
     else:
-        fulfillment_text = f"No order found with order id: {order_id}"
+        fulfillment_text = f"No order found with order id {order_id}"
 
     return JSONResponse(content={
         "fulfillmentText": fulfillment_text
-
     })
+
 
 
 
