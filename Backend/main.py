@@ -25,31 +25,10 @@ inprogress_orders = {}
 # =========================================================
 @app.post("/chat")
 async def chat(data: dict):
-    if "text" not in data or not data["text"]:
-        return {"reply": "Please send a message."}
+    if "text" not in data:
+        return {"reply": "Please type something."}
 
-    text = data["text"]
-
-    intent, parameters = detect_intent_and_params(text, WEB_SESSION_ID)
-
-    intent_handler_dict = {
-        "add.order": add_to_order,
-        "remove.order": remove_from_order,
-        "complete.order": complete_order,
-        "order.track": track_order
-    }
-
-    handler = intent_handler_dict.get(intent)
-
-    if not handler:
-        return {"reply": "Sorry, I didn’t understand that."}
-
-    response: JSONResponse = handler(parameters, WEB_SESSION_ID)
-
-    # ✅ SAFE JSON extraction
-    reply = response.body.decode()
-    reply = reply.replace('{"fulfillmentText":"', "").replace('"}', "")
-
+    reply = detect_intent_text(data["text"], WEB_SESSION_ID)
     return {"reply": reply}
 
 
@@ -216,3 +195,4 @@ def track_order(parameters: dict, session_id: str):
     return JSONResponse(content={
         "fulfillmentText": f"Order {order_id} is currently {status}."
     })
+
