@@ -24,8 +24,6 @@ from dialogflow_helper import detect_intent_and_params
 
 WEB_SESSION_ID = "web-session"
 
-WEB_SESSION_ID = "web-session"
-
 @app.post("/chat")
 async def chat(data: dict):
     text = data["text"]
@@ -127,21 +125,30 @@ def complete_order(parameters: dict, session_id: str):
     })
 
 def add_to_order(parameters: dict, session_id: str):
-    food_items = parameters.get("food_items", [])
-    quantities = parameters.get("number", [])
+    # ✅ handle both possible parameter names
+    food_items = parameters.get("food_items") or parameters.get("food-item")
+    quantities = parameters.get("number")
 
-    # normalize
+    # ✅ normalize None → empty list
+    if food_items is None:
+        food_items = []
+    if quantities is None:
+        quantities = []
+
+    # ✅ force list
     if isinstance(food_items, str):
         food_items = [food_items]
     if isinstance(quantities, int):
         quantities = [quantities]
 
+    # ✅ default quantity = 1
+    if len(quantities) == 0 and len(food_items) > 0:
+        quantities = [1] * len(food_items)
+
     if len(food_items) != len(quantities):
-        fulfillment_text = "Sorry, please mention food items and quantities clearly."
+        fulfillment_text = "Sorry, please tell item names clearly."
     else:
-        new_food_dict = {
-            item: int(qty) for item, qty in zip(food_items, quantities)
-        }
+        new_food_dict = dict(zip(food_items, quantities))
 
         if session_id in inprogress_orders:
             inprogress_orders[session_id].update(new_food_dict)
@@ -154,6 +161,7 @@ def add_to_order(parameters: dict, session_id: str):
     return JSONResponse(content={
         "fulfillmentText": fulfillment_text
     })
+
 
 
 
@@ -209,6 +217,7 @@ def track_order(parameters: dict, session_id: str):
         "fulfillmentText": fulfillment_text
 
     })
+
 
 
 
