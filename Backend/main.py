@@ -126,21 +126,22 @@ def complete_order(parameters: dict, session_id: str):
         "fulfillmentText": fulfillment_text
     })
 
-
 def add_to_order(parameters: dict, session_id: str):
     food_items = parameters.get("food_items", [])
     quantities = parameters.get("number", [])
 
-    # Safety: convert single values to list
-    if not isinstance(food_items, list):
+    # normalize
+    if isinstance(food_items, str):
         food_items = [food_items]
-    if not isinstance(quantities, list):
+    if isinstance(quantities, int):
         quantities = [quantities]
 
     if len(food_items) != len(quantities):
         fulfillment_text = "Sorry, please mention food items and quantities clearly."
     else:
-        new_food_dict = dict(zip(food_items, quantities))
+        new_food_dict = {
+            item: int(qty) for item, qty in zip(food_items, quantities)
+        }
 
         if session_id in inprogress_orders:
             inprogress_orders[session_id].update(new_food_dict)
@@ -153,6 +154,7 @@ def add_to_order(parameters: dict, session_id: str):
     return JSONResponse(content={
         "fulfillmentText": fulfillment_text
     })
+
 
 
 
@@ -207,6 +209,7 @@ def track_order(parameters: dict, session_id: str):
         "fulfillmentText": fulfillment_text
 
     })
+
 
 
 
