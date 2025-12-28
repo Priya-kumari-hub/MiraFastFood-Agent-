@@ -13,7 +13,7 @@ credentials = service_account.Credentials.from_service_account_info(
     credentials_info
 )
 
-def detect_intent_text(text: str, session_id: str) -> str:
+def detect_intent_and_params(text, session_id):
     session_client = dialogflow.SessionsClient(credentials=credentials)
 
     session = session_client.session_path(PROJECT_ID, session_id)
@@ -32,5 +32,7 @@ def detect_intent_text(text: str, session_id: str) -> str:
         }
     )
 
-    # 🔑 THIS is what you return to frontend
-    return response.query_result.fulfillment_text
+    intent = response.query_result.intent.display_name
+    parameters = dict(response.query_result.parameters)
+
+    return intent, parameters
