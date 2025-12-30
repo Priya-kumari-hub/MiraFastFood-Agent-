@@ -66,6 +66,7 @@ MiraFastFood-Agent/
 │   ├── generic_helper.py       # Utility and helper functions
 
 │   └── requirements.txt        # Backend Python dependencies
+
 │
 
 ├── frontend/
@@ -75,3 +76,5 @@ MiraFastFood-Agent/
 │
 └── README.md                   # Project documentation
 
+### Live Demo (works only when backend is live)
+https://fastfood-agent.netlify.app/  
