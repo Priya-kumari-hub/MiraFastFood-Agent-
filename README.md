@@ -37,28 +37,38 @@ Hosts the static frontend containing the Dialogflow Messenger, ensuring fast loa
 User (Browser)
 
    ↓
+   
 Static Frontend (Netlify)
 
    ↓
+   
 Dialogflow ES (Intent & Entity Detection)
 
    ↓
+   
 FastAPI Webhook (Render)
 
    ↓
+   
 PostgreSQL Database (Render)
 
 ### Folder structure
 MiraFastFood-Agent/
 │
 ├── backend/
+
 │   ├── main.py                 # FastAPI app & Dialogflow webhook handler
+
 │   ├── db_helper.py            # PostgreSQL database operations
+
 │   ├── generic_helper.py       # Utility and helper functions
+
 │   └── requirements.txt        # Backend Python dependencies
 │
 ├── frontend/
+
 │   └── index.html              # Dialogflow Messenger-based chat UI
+
 │
 └── README.md                   # Project documentation
 
