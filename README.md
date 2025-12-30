@@ -35,12 +35,16 @@ Hosts the static frontend containing the Dialogflow Messenger, ensuring fast loa
 
 ### System Architecture
 User (Browser)
+
    ↓
 Static Frontend (Netlify)
+
    ↓
 Dialogflow ES (Intent & Entity Detection)
+
    ↓
 FastAPI Webhook (Render)
+
    ↓
 PostgreSQL Database (Render)
 
