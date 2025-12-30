@@ -20,11 +20,11 @@ Completed orders are stored in a PostgreSQL database, enabling order tracking fu
 The chatbot is integrated into a web interface using Dialogflow Messenger, allowing users to interact with the system directly from a browser in a user-friendly chat format.
 
 ### Tech Stack used
-##### Dialogflow ES-- 
+#### Dialogflow ES-- 
 Used for intent detection, entity extraction (food items, quantities), and context management to enable natural language, multi-turn conversations.
-##### FastAPI- 
+#### FastAPI- 
 Serves as the webhook backend to process Dialogflow requests, handle business logic, manage session-wise orders, and generate chatbot responses.
-##### PostgreSQL-
+#### PostgreSQL-
 Provides persistent storage for completed orders and order tracking data, ensuring reliability and data consistency.
 #### Dialogflow Messenger-
 Acts as the web-based chat interface that embeds the chatbot into a browser-accessible frontend.
@@ -32,3 +32,29 @@ Acts as the web-based chat interface that embeds the chatbot into a browser-acce
 Hosts the static frontend containing the Dialogflow Messenger, ensuring fast load times and high availability.
 #### Render-
  Deploys the FastAPI backend and PostgreSQL database with HTTPS support required for Dialogflow webhook integration.
+
+### System Architecture
+User (Browser)
+   ↓
+Static Frontend (Netlify)
+   ↓
+Dialogflow ES (Intent & Entity Detection)
+   ↓
+FastAPI Webhook (Render)
+   ↓
+PostgreSQL Database (Render)
+
+### Folder structure
+MiraFastFood-Agent/
+│
+├── backend/
+│   ├── main.py                 # FastAPI app & Dialogflow webhook handler
+│   ├── db_helper.py            # PostgreSQL database operations
+│   ├── generic_helper.py       # Utility and helper functions
+│   └── requirements.txt        # Backend Python dependencies
+│
+├── frontend/
+│   └── index.html              # Dialogflow Messenger-based chat UI
+│
+└── README.md                   # Project documentation
+
