@@ -20,11 +20,11 @@ Completed orders are stored in a PostgreSQL database, enabling order tracking fu
 The chatbot is integrated into a web interface using Dialogflow Messenger, allowing users to interact with the system directly from a browser in a user-friendly chat format.
 
 ### Tech Stack used
-#### Dialogflow ES-- 
+##### Dialogflow ES-- 
 Used for intent detection, entity extraction (food items, quantities), and context management to enable natural language, multi-turn conversations.
-#### FastAPI- 
+##### FastAPI- 
 Serves as the webhook backend to process Dialogflow requests, handle business logic, manage session-wise orders, and generate chatbot responses.
-#### PostgreSQL-
+##### PostgreSQL-
 Provides persistent storage for completed orders and order tracking data, ensuring reliability and data consistency.
 #### Dialogflow Messenger-
 Acts as the web-based chat interface that embeds the chatbot into a browser-accessible frontend.
