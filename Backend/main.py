@@ -77,25 +77,35 @@ def add_to_order(parameters: dict, session_id: str):
     if not isinstance(quantities, list):
         quantities = [quantities]
 
-    # remove None
-    food_items = [f for f in food_items if f]
-    quantities = [int(q) for q in quantities if q]
+    # clean food items
+    food_items = [str(f) for f in food_items if f]
 
-    if not food_items or not quantities or len(food_items) != len(quantities):
+    # 🔥 FIX: default quantity to 1
+    if not quantities:
+        quantities = [1] * len(food_items)
+    else:
+        quantities = [int(q) if q else 1 for q in quantities]
+
+    # align lengths safely
+    if len(quantities) < len(food_items):
+        quantities += [1] * (len(food_items) - len(quantities))
+
+    if not food_items:
         return JSONResponse(content={
             "fulfillmentText": "I couldn't recognize the food item. Please try again."
         })
 
-    # ✅ CORRECT variable
     new_items = {
-        str(item): int(qty)
-        for item, qty in zip(food_items, quantities)
+        item: qty for item, qty in zip(food_items, quantities)
     }
 
     if session_id not in inprogress_orders:
         inprogress_orders[session_id] = {}
 
-    inprogress_orders[session_id].update(new_items)
+    for item, qty in new_items.items():
+        inprogress_orders[session_id][item] = (
+            inprogress_orders[session_id].get(item, 0) + qty
+        )
 
     order_str = generic_helper.get_str_from_food_dict(
         inprogress_orders[session_id]
@@ -104,6 +114,7 @@ def add_to_order(parameters: dict, session_id: str):
     return JSONResponse(content={
         "fulfillmentText": f"So far you have: {order_str}. Do you need anything else?"
     })
+
 
 
 def remove_from_order(parameters: dict, session_id: str):
@@ -183,3 +194,4 @@ def track_order(parameters: dict, session_id: str):
     return JSONResponse(content={
         "fulfillmentText": f"Order {order_id} is currently {status}."
     })
+
