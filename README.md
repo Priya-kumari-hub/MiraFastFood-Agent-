@@ -18,3 +18,17 @@ When the user indicates they are done (e.g., by saying “no”), the chatbot fi
 Completed orders are stored in a PostgreSQL database, enabling order tracking functionality. Users can later query the chatbot using an order ID to check the status of their order.
 #### Web-Based Chat Interface Using Dialogflow Messenger
 The chatbot is integrated into a web interface using Dialogflow Messenger, allowing users to interact with the system directly from a browser in a user-friendly chat format.
+
+### Tech Stack used
+#### Dialogflow ES-- 
+Used for intent detection, entity extraction (food items, quantities), and context management to enable natural language, multi-turn conversations.
+#### FastAPI- 
+Serves as the webhook backend to process Dialogflow requests, handle business logic, manage session-wise orders, and generate chatbot responses.
+#### PostgreSQL-
+Provides persistent storage for completed orders and order tracking data, ensuring reliability and data consistency.
+#### Dialogflow Messenger-
+Acts as the web-based chat interface that embeds the chatbot into a browser-accessible frontend.
+#### Netlify-
+Hosts the static frontend containing the Dialogflow Messenger, ensuring fast load times and high availability.
+#### Render-
+ Deploys the FastAPI backend and PostgreSQL database with HTTPS support required for Dialogflow webhook integration.
