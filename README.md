@@ -67,6 +67,7 @@ MiraFastFood-Agent/
 
 │   └── requirements.txt        # Backend Python dependencies
 │
+
 ├── frontend/
 
 │   └── index.html              # Dialogflow Messenger-based chat UI
