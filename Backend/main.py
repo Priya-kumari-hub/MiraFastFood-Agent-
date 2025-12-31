@@ -150,10 +150,10 @@ def bill_payment(parameters: dict, session_id: str):
         return JSONResponse(content={
             "fulfillmentText": "Your order is empty. Please add items first."
         })
-     order = inprogress_orders[session_id]
-     total = db_helper.get_total_order_price(order_id)
+    order = inprogress_orders[session_id]
+    total = db_helper.get_total_order_price(order_id)
 
-     return JSONResponse(content={ 
+    return JSONResponse(content={ 
         "fulfillmentText": f"Great! your total bill is ₹{total}, please select the payment option 1.UPI(Google Pay, Phone Pay, Paytm, Paypal, NaviUPI, BHIM, Razorpay, Bharat pay, Amazon pay) 2.Cash on devilery."
     })
 
@@ -201,6 +201,7 @@ def track_order(parameters: dict, session_id: str):
     return JSONResponse(content={
         "fulfillmentText": f"Order {order_id} is currently {status}."
     })
+
 
 
 
