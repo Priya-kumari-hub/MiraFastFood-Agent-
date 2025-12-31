@@ -18,8 +18,6 @@ app.add_middleware(
 
 # ---------------- GLOBALS ----------------
 WEB_SESSION_ID = "web-session"
-inprogress_orders = {}
-
 
 # DIALOGFLOW WEBHOOK
 # =========================================================
@@ -68,45 +66,29 @@ def save_to_db(order: dict):
 # =========================================================
 # INTENT HANDLERS
 # =========================================================
+inprogress_orders = {}
 def add_to_order(parameters: dict, session_id: str):
-    food_items = parameters.get("food_items") or []
-    quantities = parameters.get("number") or []
-
-    if not isinstance(food_items, list):
-        food_items = [food_items]
-    if not isinstance(quantities, list):
-        quantities = [quantities]
-
-    # clean food items
-    food_items = [str(f) for f in food_items if f]
-
-    # 🔥 FIX: default quantity to 1
-    if not quantities:
-        quantities = [1] * len(food_items)
-    else:
-        quantities = [int(q) if q else 1 for q in quantities]
+    food_items = parameters["food_items"] 
+    quantities = parameters["number]
 
     # align lengths safely
-    if len(quantities) < len(food_items):
-        quantities += [1] * (len(food_items) - len(quantities))
+    if len(quantities)!= len(food_items):
+        return JSONResponse(content={
+            "fulfillmentText": "Please specify the quantity clearly."
+        })
 
     if not food_items:
         return JSONResponse(content={
             "fulfillmentText": "I couldn't recognize the food item. Please try again."
         })
 
-    new_items = {
-        item: qty for item, qty in zip(food_items, quantities)
-    }
+    new_items = dict(zip(food_items, quantities)) # creates pairs by position:
+
 
     if session_id not in inprogress_orders:
         inprogress_orders[session_id] = {}
 
-    for item, qty in new_items.items():
-        inprogress_orders[session_id][item] = (
-            inprogress_orders[session_id].get(item, 0) + qty
-        )
-
+    inprogress_orders[session_id].update(new_items)
     order_str = generic_helper.get_str_from_food_dict(
         inprogress_orders[session_id]
     )
@@ -122,12 +104,11 @@ def remove_from_order(parameters: dict, session_id: str):
         return JSONResponse(content={
             "fulfillmentText": "You don’t have an active order."
         })
-
+         
     food_items = parameters.get("food_items") or []
-    if not isinstance(food_items, list):
-        food_items = [food_items]
-
-    food_items = [f for f in food_items if f]
+ #  if not isinstance(food_items, list):
+  #  food_items = [food_items]
+ #   food_items = [f for f in food_items if f]
 
     current_order = inprogress_orders[session_id]
 
@@ -147,13 +128,12 @@ def remove_from_order(parameters: dict, session_id: str):
         msg += f"{', '.join(not_found)} were not in your order. "
 
     if not current_order:
-        msg += "Your order is empty."
+        msg += "Your order is empty, please add something..."
     else:
-        msg += "Remaining: " + generic_helper.get_str_from_food_dict(current_order)
+        msg += "Remaining items: " + generic_helper.get_str_from_food_dict(current_order)+"anything else?"
 
     return JSONResponse(content={"fulfillmentText": msg.strip()})
-
-
+    
 def complete_order(parameters: dict, session_id: str):
     if session_id not in inprogress_orders or not inprogress_orders[session_id]:
         return JSONResponse(content={
@@ -161,8 +141,8 @@ def complete_order(parameters: dict, session_id: str):
         })
 
     order = inprogress_orders[session_id]
-    order_id = save_to_db(order)
-
+    order_id = save_to_db(order) 
+  
     if order_id == -1:
         return JSONResponse(content={
             "fulfillmentText": "Failed to place order. Please try again."
@@ -172,14 +152,12 @@ def complete_order(parameters: dict, session_id: str):
     del inprogress_orders[session_id]
 
     return JSONResponse(content={
-        "fulfillmentText": f"Order placed! ID {order_id}. Total ₹{total}."
+        "fulfillmentText": f"Awesome! your order is placed, order ID #{order_id}. Total ₹{total},you have to pay on delivery time."
     })
     
 def track_order(parameters: dict, session_id: str):
     # Dialogflow sends order id as "number"
-    order_id = parameters.get("order_id") or parameters.get("number")
-
-
+    order_id =  parameters.get("number")
 
     status = db_helper.get_order_status(order_id)
 
@@ -191,6 +169,7 @@ def track_order(parameters: dict, session_id: str):
     return JSONResponse(content={
         "fulfillmentText": f"Order {order_id} is currently {status}."
     })
+
 
 
 
