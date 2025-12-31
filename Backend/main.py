@@ -121,7 +121,7 @@ def remove_from_order(parameters: dict, session_id: str):
 
     removed, not_found = [], []
 
-    for item in food_items:
+  for item in food_items:
     item_lower = item.lower()
     found = False
 
@@ -206,6 +206,7 @@ def track_order(parameters: dict, session_id: str):
     return JSONResponse(content={
         "fulfillmentText": f"Order {order_id} is currently {status}."
     })
+
 
 
 
