@@ -68,27 +68,35 @@ def save_to_db(order: dict):
 # =========================================================
 inprogress_orders = {}
 def add_to_order(parameters: dict, session_id: str):
-    food_items = parameters["food_items"] 
+    food_items = parameters["food_items"]
     quantities = parameters["number"]
 
-    # align lengths safely
-    if len(quantities)!= len(food_items):
-        return JSONResponse(content={
-            "fulfillmentText": "Please specify the quantity clearly."
-        })
+    
+
+    # default quantity = 1
+    if not quantities:
+        quantities = [1] * len(food_items)
+    else:
+        quantities = [int(q) if q else 1 for q in quantities]
+
+    # align lengths
+    if len(quantities) < len(food_items):
+        quantities += [1] * (len(food_items) - len(quantities))
 
     if not food_items:
         return JSONResponse(content={
             "fulfillmentText": "I couldn't recognize the food item. Please try again."
         })
 
-    new_items = dict(zip(food_items, quantities)) # creates pairs by position:
-
-
     if session_id not in inprogress_orders:
         inprogress_orders[session_id] = {}
 
-    inprogress_orders[session_id].update(new_items)
+    # accumulate quantities
+    for item, qty in zip(food_items, quantities):
+        inprogress_orders[session_id][item] = (
+            inprogress_orders[session_id].get(item, 0) + qty
+        )
+
     order_str = generic_helper.get_str_from_food_dict(
         inprogress_orders[session_id]
     )
@@ -99,17 +107,17 @@ def add_to_order(parameters: dict, session_id: str):
 
 
 
-def remove_from_order(parameters: dict, session_id: str):
+   def remove_from_order(parameters: dict, session_id: str):
     if session_id not in inprogress_orders:
         return JSONResponse(content={
             "fulfillmentText": "You don’t have an active order."
         })
-         
-    food_items = parameters.["food_items"]
- #  if not isinstance(food_items, list):
-  #  food_items = [food_items]
- #   food_items = [f for f in food_items if f]
 
+    food_items = parameters.get("food_items") or []
+    if not isinstance(food_items, list):
+        food_items = [food_items]
+
+    food_items = [f for f in food_items if f]
     current_order = inprogress_orders[session_id]
 
     removed, not_found = [], []
@@ -128,11 +136,42 @@ def remove_from_order(parameters: dict, session_id: str):
         msg += f"{', '.join(not_found)} were not in your order. "
 
     if not current_order:
-        msg += "Your order is empty, please add something..."
+        msg += "Your order is empty, please add something."
     else:
-        msg += "Remaining items: " + generic_helper.get_str_from_food_dict(current_order)+"anything else?"
+        msg += "Remaining items: " + generic_helper.get_str_from_food_dict(current_order)
 
     return JSONResponse(content={"fulfillmentText": msg.strip()})
+def remove_from_order(parameters: dict, session_id: str):
+    if session_id not in inprogress_orders:
+        return JSONResponse(content={
+            "fulfillmentText": "You don’t have an active order."
+        })
+
+    food_items = parameters["food_items"]
+    current_order = inprogress_orders[session_id]
+
+    removed, not_found = [], []
+
+    for item in food_items:
+        if item in current_order:
+            removed.append(item)
+            del current_order[item]
+        else:
+            not_found.append(item)
+
+    msg = ""
+    if removed:
+        msg += f"Removed {', '.join(removed)}. "
+    if not_found:
+        msg += f"{', '.join(not_found)} were not in your order. "
+
+    if not current_order:
+        msg += "Your order is empty, please add something."
+    else:
+        msg += "Remaining items: " + generic_helper.get_str_from_food_dict(current_order)+ "anything else?"
+
+    return JSONResponse(content={"fulfillmentText": msg.strip()})
+
     
 def complete_order(parameters: dict, session_id: str):
     if session_id not in inprogress_orders or not inprogress_orders[session_id]:
@@ -169,6 +208,7 @@ def track_order(parameters: dict, session_id: str):
     return JSONResponse(content={
         "fulfillmentText": f"Order {order_id} is currently {status}."
     })
+
 
 
 
