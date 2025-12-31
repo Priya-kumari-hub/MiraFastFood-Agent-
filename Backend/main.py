@@ -69,7 +69,7 @@ def save_to_db(order: dict):
 inprogress_orders = {}
 def add_to_order(parameters: dict, session_id: str):
     food_items = parameters["food_items"] 
-    quantities = parameters["number]
+    quantities = parameters["number"]
 
     # align lengths safely
     if len(quantities)!= len(food_items):
@@ -169,6 +169,7 @@ def track_order(parameters: dict, session_id: str):
     return JSONResponse(content={
         "fulfillmentText": f"Order {order_id} is currently {status}."
     })
+
 
 
 
