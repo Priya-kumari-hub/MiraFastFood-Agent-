@@ -115,20 +115,25 @@ def remove_from_order(parameters: dict, session_id: str):
         })
 
     food_items = parameters.get("food_items") or []
-    if not isinstance(food_items, list):
-        food_items = [food_items]
-
-    food_items = [f for f in food_items if f]
+    
+   # food_items = [f for f in food_items if f]
     current_order = inprogress_orders[session_id]
 
     removed, not_found = [], []
 
     for item in food_items:
-        if item in current_order:
-            removed.append(item)
-            del current_order[item]
-        else:
-            not_found.append(item)
+    item_lower = item.lower()
+    found = False
+
+    for key in list(current_order.keys()):
+        if item_lower in key.lower():
+            removed.append(key)
+            del current_order[key]
+            found = True
+            break
+
+    if not found:
+        not_found.append(item)
 
     msg = ""
     if removed:
@@ -201,6 +206,7 @@ def track_order(parameters: dict, session_id: str):
     return JSONResponse(content={
         "fulfillmentText": f"Order {order_id} is currently {status}."
     })
+
 
 
 
