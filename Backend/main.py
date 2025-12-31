@@ -105,7 +105,7 @@ def remove_from_order(parameters: dict, session_id: str):
             "fulfillmentText": "You don’t have an active order."
         })
          
-    food_items = parameters.get("food_items") or []
+    food_items = parameters.["food_items"]
  #  if not isinstance(food_items, list):
   #  food_items = [food_items]
  #   food_items = [f for f in food_items if f]
@@ -169,6 +169,7 @@ def track_order(parameters: dict, session_id: str):
     return JSONResponse(content={
         "fulfillmentText": f"Order {order_id} is currently {status}."
     })
+
 
 
 
