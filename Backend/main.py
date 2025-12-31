@@ -1,10 +1,11 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, Field
 
 import db_helper
 import generic_helper
-#from dialogflow_helper import detect_intent_and_params
+
 
 app = FastAPI()
 
@@ -16,8 +17,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ---------------- GLOBALS ----------------
-WEB_SESSION_ID = "web-session"
 
 # DIALOGFLOW WEBHOOK
 # =========================================================
@@ -35,7 +34,10 @@ async def handle_request(request: Request):
         "add.order": add_to_order,
         "remove.order": remove_from_order,
         "complete.order": complete_order,
-        "order.track": track_order
+        "order.track": track_order,
+        "payment.option": bill_payment,
+        "cash.payment" : cash_payment,
+        "upi.payment" : upi_payment
     }
 
     handler = intent_handler_dict.get(intent)
@@ -141,44 +143,22 @@ def remove_from_order(parameters: dict, session_id: str):
         msg += "Remaining items: " + generic_helper.get_str_from_food_dict(current_order)
 
     return JSONResponse(content={"fulfillmentText": msg.strip()})
-def remove_from_order(parameters: dict, session_id: str):
-    if session_id not in inprogress_orders:
-        return JSONResponse(content={
-            "fulfillmentText": "You don’t have an active order."
-        })
 
-    food_items = parameters["food_items"]
-    current_order = inprogress_orders[session_id]
 
-    removed, not_found = [], []
-
-    for item in food_items:
-        if item in current_order:
-            removed.append(item)
-            del current_order[item]
-        else:
-            not_found.append(item)
-
-    msg = ""
-    if removed:
-        msg += f"Removed {', '.join(removed)}. "
-    if not_found:
-        msg += f"{', '.join(not_found)} were not in your order. "
-
-    if not current_order:
-        msg += "Your order is empty, please add something."
-    else:
-        msg += "Remaining items: " + generic_helper.get_str_from_food_dict(current_order)+ "anything else?"
-
-    return JSONResponse(content={"fulfillmentText": msg.strip()})
-
-    
-def complete_order(parameters: dict, session_id: str):
+def bill_payment(parameters: dict, session_id: str):
     if session_id not in inprogress_orders or not inprogress_orders[session_id]:
         return JSONResponse(content={
             "fulfillmentText": "Your order is empty. Please add items first."
         })
+     order = inprogress_orders[session_id]
+     total = db_helper.get_total_order_price(order_id)
 
+     return JSONResponse(content={ 
+        "fulfillmentText": f"Great! your total bill is ₹{total}, please select the payment option 1.UPI(Google Pay, Phone Pay, Paytm, Paypal, NaviUPI, BHIM, Razorpay, Bharat pay, Amazon pay) 2.Cash on devilery."
+    })
+
+
+def cash_payment(parameters: dict, session_id: str):
     order = inprogress_orders[session_id]
     order_id = save_to_db(order) 
   
@@ -187,12 +167,25 @@ def complete_order(parameters: dict, session_id: str):
             "fulfillmentText": "Failed to place order. Please try again."
         })
 
-    total = db_helper.get_total_order_price(order_id)
     del inprogress_orders[session_id]
-
-    return JSONResponse(content={
-        "fulfillmentText": f"Awesome! your order is placed, order ID #{order_id}. Total ₹{total},you have to pay on delivery time."
+    return JSONResponse(content={ 
+        "fulfillmentText": f"Awesome! your order has been placed, order ID #{order_id}"
     })
+def upi_payment(parameters: dict, session_id: str):  
+    order = inprogress_orders[session_id]
+    order_id = save_to_db(order) 
+  
+    if order_id == -1:
+        return JSONResponse(content={
+            "fulfillmentText": "Failed to place order. Please try again."
+        })
+
+    del inprogress_orders[session_id]
+    return JSONResponse(content={ 
+        "fulfillmentText": f"Awesome! your order has been placed,your order ID #{order_id}."
+    })
+    
+
     
 def track_order(parameters: dict, session_id: str):
     # Dialogflow sends order id as "number"
@@ -208,6 +201,7 @@ def track_order(parameters: dict, session_id: str):
     return JSONResponse(content={
         "fulfillmentText": f"Order {order_id} is currently {status}."
     })
+
 
 
 
