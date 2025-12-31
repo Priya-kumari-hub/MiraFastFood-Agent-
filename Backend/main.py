@@ -174,22 +174,12 @@ def complete_order(parameters: dict, session_id: str):
     return JSONResponse(content={
         "fulfillmentText": f"Order placed! ID {order_id}. Total ₹{total}."
     })
-
-
+    
 def track_order(parameters: dict, session_id: str):
-    order_id = parameters.get("order_id")
+    # Dialogflow sends order id as "number"
+    order_id = parameters.get("order_id") or parameters.get("number")
 
-    # ✅ Handle list case (Dialogflow often sends lists)
-    if isinstance(order_id, list):
-        order_id = order_id[0] if order_id else None
 
-    # ✅ Handle string and conversion safely
-    try:
-        order_id = int(order_id)
-    except (TypeError, ValueError):
-        return JSONResponse(content={
-            "fulfillmentText": "Please provide a valid order ID."
-        })
 
     status = db_helper.get_order_status(order_id)
 
@@ -201,6 +191,7 @@ def track_order(parameters: dict, session_id: str):
     return JSONResponse(content={
         "fulfillmentText": f"Order {order_id} is currently {status}."
     })
+
 
 
 
