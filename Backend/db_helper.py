@@ -63,6 +63,24 @@ def get_total_order_price(order_id):
     conn.close()
 
     return result if result else 0
+def get_total_order_price_from_items(order_items: dict):
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    total = 0
+    for food_name, quantity in order_items.items():
+        cursor.execute(
+            "SELECT price FROM food_items WHERE name = %s",
+            (food_name,)
+        )
+        result = cursor.fetchone()
+        if result:
+            total += result[0] * quantity
+
+    cursor.close()
+    conn.close()
+    return total
 
 
 # Get next order ID
@@ -93,4 +111,5 @@ def get_order_status(order_id):
     conn.close()
 
     return result[0] if result else None
+
 
