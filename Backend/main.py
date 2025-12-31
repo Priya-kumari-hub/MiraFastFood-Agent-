@@ -33,7 +33,6 @@ async def handle_request(request: Request):
     intent_handler_dict = {
         "add.order": add_to_order,
         "remove.order": remove_from_order,
-        "complete.order": complete_order,
         "order.track": track_order,
         "payment.option": bill_payment,
         "cash.payment" : cash_payment,
@@ -201,6 +200,7 @@ def track_order(parameters: dict, session_id: str):
     return JSONResponse(content={
         "fulfillmentText": f"Order {order_id} is currently {status}."
     })
+
 
 
 
