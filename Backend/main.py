@@ -107,7 +107,7 @@ def add_to_order(parameters: dict, session_id: str):
 
 
 
-   def remove_from_order(parameters: dict, session_id: str):
+def remove_from_order(parameters: dict, session_id: str):
     if session_id not in inprogress_orders:
         return JSONResponse(content={
             "fulfillmentText": "You don’t have an active order."
@@ -208,6 +208,7 @@ def track_order(parameters: dict, session_id: str):
     return JSONResponse(content={
         "fulfillmentText": f"Order {order_id} is currently {status}."
     })
+
 
 
 
