@@ -73,8 +73,6 @@ PostgreSQL Database (Render)
 ### Folder Structure
 MiraFastFood-Agent/
 
-│
-
 ├── backend/
 
 │ ├── main.py # FastAPI app & Dialogflow webhook handler
@@ -86,7 +84,6 @@ MiraFastFood-Agent/
 │ └── requirements.txt # Backend dependencies
 
 
-│
 ├── frontend/
 
 │ └── index.html # Dialogflow Messenger-based chat UI
