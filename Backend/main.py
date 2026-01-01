@@ -146,7 +146,7 @@ def remove_from_order(parameters: dict, session_id: str):
     if not current_order:
         msg += "Your order is empty, please add something."
     else:
-        msg += "Remaining items: " + generic_helper.get_str_from_food_dict(current_order) + "anything else?"
+        msg += "Remaining items: " + generic_helper.get_str_from_food_dict(current_order) + "  anything else?"
 
     return JSONResponse(content={"fulfillmentText": msg.strip()})
 
@@ -208,6 +208,7 @@ def track_order(parameters: dict, session_id: str):
     return JSONResponse(content={
         "fulfillmentText": f"Order {order_id} is currently {status}."
     })
+
 
 
 
